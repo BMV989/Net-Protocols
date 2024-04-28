@@ -104,22 +104,24 @@ def whois(list_ip: list[str]) -> dict[str, dict[str, str]]:
 
 
 def main():
+    try:
+        parser = argparse.ArgumentParser(prog='tracer',
+                                         description='Trace to IP and do Whois for each IP in the trace path.')
+        parser.add_argument('dst_ip', type=str, help='Destination IP address')
+        args = parser.parse_args()
 
-    parser = argparse.ArgumentParser(prog='tracer',
-                                     description='Trace to IP and do Whois for each IP in the trace path.')
-    parser.add_argument('dst_ip', type=str, help='Destination IP address')
-    args = parser.parse_args()
+        table = prettytable.PrettyTable()
+        table.field_names = ['IP', 'AS', 'Country', 'Description']
 
-    table = prettytable.PrettyTable()
-    table.field_names = ['IP', 'AS', 'Country', 'Description']
+        trace = traceroute(args.dst_ip)
+        w = whois(trace)
 
-    trace = traceroute(args.dst_ip)
-    w = whois(trace)
+        for ip, descr in w.items():
+            table.add_row([ip, descr['AS'], descr['Country'], descr['Description']])
 
-    for ip, descr in w.items():
-        table.add_row([ip, descr['AS'], descr['Country'], descr['Description']])
-
-    print(table)
+        print(table)
+    except Exception as e:
+        print(f"[*] ERROR: network error: {e}")
 
 
 if __name__ == "__main__":
