@@ -85,7 +85,7 @@ CACHE = os.getenv('CACHE') or 'cache.json'
 logging.basicConfig(level=logging.INFO, filename='dns_server.log', filemode='a')
 
 
-def resolution_loop(server: socket, forwarder: str, cache: Cache):
+def resolution_loop(server: socket.socket, forwarder: str, cache: Cache):
     while True:
         try:
             data, addr = server.recvfrom(1024)
