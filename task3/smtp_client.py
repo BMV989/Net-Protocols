@@ -37,7 +37,7 @@ def normalize_subject(subject: str) -> str:
 
 def send_request(client: socket.socket, request: str) -> str:
     client.send((request + '\n').encode())
-    return socket.recv(1024).decode()
+    return client.recv(1024).decode()
 
 
 def generate_boundary() -> str:
@@ -65,7 +65,7 @@ def build_message(mail: dict | None) -> str | None:
         message_parts.append(f"Content-Type: multipart/mixed;boundary=\"{boundary}\"\n\n\n")
 
         message_parts.append(f"--{boundary}\n")
-        message_parts.append("Content-Type: text/html\n\n")
+        message_parts.append("Content-Type: text/html; charset=utf-8\n\n")
         for line in mail["body"].split("\n"):
             if RE_DOT_OR_DOTS.match(line):
                 line += "."
@@ -84,11 +84,12 @@ def build_message(mail: dict | None) -> str | None:
                     message_parts.append(f"\tname=\"{filename}\"\n\n")
                     content = base64.b64encode(file.read()).decode("utf-8")
                     message_parts.append(content + '\n')
-                    message_parts.append(f"--{boundary}--")
-                    message_parts.append("\n.\n")
             except Exception as e:
                 logging.error(f"can't add your {attach} because of an error: {e}")
                 continue
+
+        message_parts.append(f"--{boundary}--")
+        message_parts.append("\n.\n")
         return ''.join(message_parts)
     except Exception as e:
         logging.error(e)
@@ -104,12 +105,14 @@ def send_mail(mail: dict | None) -> None:
 
             client.recv(1024)
             send_request(client, f"EHLO {LOGIN}")
-            base64login = base64.b64encode(login.encode()).decode()
-            base64password = base64.b64encode(password.encode()).decode()
+            base64login = base64.b64encode(LOGIN.encode()).decode()
+            base64password = base64.b64encode(PASSWORD.encode()).decode()
+
+            send_request(client, 'AUTH LOGIN')
             send_request(client, base64login)
             response = send_request(client, base64password)
             if not response.startswith("235"):
-                raise ConnectionError
+                raise ConnectionError(response)
             response = send_request(client, f'MAIL FROM:{LOGIN}@yandex.ru')
             if not response.startswith("250"):
                 raise ValueError(LOGIN)
