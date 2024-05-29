@@ -66,7 +66,7 @@ sudo python3 dns_server.py
 ```
 ## Задача 3
 
-Формулировка задачи:
+**Формулировка задачи:**
 
 SMTP клиент. На сервера mail, yandex, rambler письма с вложениями должны доходить и быть читабельными.
 Для работы клиенту нужен json и .env
@@ -102,5 +102,5 @@ PORT = "465"
 
 ## Пример
 ```sh
-sudo python3 smtp_client.py
+python3 smtp_client.py
 ```
